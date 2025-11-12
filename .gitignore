@@ -36,3 +36,8 @@ coverage
 __screenshots__/
 
 .env
+
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*
