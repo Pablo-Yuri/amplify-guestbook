@@ -58,8 +58,7 @@ const handleDialogOpenChange = (value: boolean) => {
         </p>
         <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">Mural com likes e mensagens da comunidade</h1>
         <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-          Compartilhe novidades, deixe recados e celebre cada like. Autentique-se para publicar ou curtir mensagens na
-          API REST.
+          Autentique-se para publicar ou curtir mensagens na API.
         </p>
 
         <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
