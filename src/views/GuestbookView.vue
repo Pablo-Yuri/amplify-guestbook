@@ -10,6 +10,7 @@ type Message = { id: string; authorEmail?: string; text: string; createdAt: stri
 
 const isAuthenticated = false
 const dialogOpen = ref(false)
+const messageText = ref('')
 
 const messages: Message[] = [
   {
@@ -99,7 +100,7 @@ const handleDialogOpenChange = (value: boolean) => {
               <DialogHeader>
                 <DialogTitle>Escrever nova mensagem</DialogTitle>
               </DialogHeader>
-              <Textarea placeholder="Deixe sua mensagem..." class="min-h-[120px] bg-white border-slate-200" />
+              <Textarea v-model="messageText" placeholder="Deixe sua mensagem..." class="min-h-[120px] bg-white border-slate-200" />
               <DialogFooter>
                 <Button disabled>Enviar</Button>
               </DialogFooter>
