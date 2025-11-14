@@ -1,40 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import MessageCard from '@/components/MessageCard.vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Heart, LogIn, LogOut, Plus, Inbox } from 'lucide-vue-next'
+import { type Message, createMessage, getMessages, likeMessage } from '@/lib/api'
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
+import '@aws-amplify/ui-vue/styles.css'
+import { translations } from '@aws-amplify/ui-vue'
+import { I18n } from 'aws-amplify/utils'
 
-type Message = { id: string; authorEmail?: string; text: string; createdAt: string; likes: number }
+I18n.setLanguage("pt")
+I18n.putVocabularies(translations)
 
-const isAuthenticated = false
+const auth = useAuthenticator()
+const authOpen = ref(false)
+
+const isAuthenticated = computed(() => auth.authStatus === 'authenticated')
 const dialogOpen = ref(false)
 const messageText = ref('')
 
-const messages: Message[] = [
-  {
-    id: '1',
-    authorEmail: 'demo@hackthecloud.unb',
-    text: 'Bem-vindo ao Amplify Guestbook!',
-    createdAt: new Date().toISOString(),
-    likes: 3
-  },
-  {
-    id: '2',
-    authorEmail: 'exemplo1@teste.com',
-    text: 'Teste 1!',
-    createdAt: new Date().toISOString(),
-    likes: 1
-  },
-  {
-    id: '3',
-    authorEmail: 'exemplo2@teste.com',
-    text: 'Teste 2!',
-    createdAt: new Date().toISOString(),
-    likes: 5
-  }
-]
+const messages = ref<Message[]>([])
 
 const triggerPrimaryAction = () => {
   if (!isAuthenticated) {
@@ -48,9 +35,28 @@ const triggerPrimaryAction = () => {
 const handleDialogOpenChange = (value: boolean) => {
   dialogOpen.value = value
 }
+
+onMounted(async () => {
+  messages.value = await getMessages()
+})
+
+async function submitMessage() {
+  await createMessage(messageText.value, auth.user?.signInDetails?.loginId);
+  messages.value = await getMessages()
+  dialogOpen.value = false
+}
+
+async function submitLike(id: string, currentLikes: number) {
+  await likeMessage(id, currentLikes)
+  messages.value = await getMessages()
+}
 </script>
 
 <template>
+  <div :class="{ 'hidden': !authOpen }">
+    <Authenticator variation="modal" />
+  </div>
+
   <div class="min-h-screen w-full bg-linear-to-b from-amber-50 via-white to-emerald-50 text-slate-800 flex flex-col">
     <main class="mx-auto w-full max-w-6xl px-4 py-10 space-y-10 flex-1">
       <section class="text-center space-y-4">
@@ -67,6 +73,7 @@ const handleDialogOpenChange = (value: boolean) => {
             v-if="!isAuthenticated" 
             variant="outline"
             class="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            @click="authOpen = true"
           >
             <LogIn class="h-4 w-4 mr-2" />
             Entrar
@@ -75,6 +82,7 @@ const handleDialogOpenChange = (value: boolean) => {
             v-else 
             variant="outline" 
             class="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            @click="auth.signOut"
           >
             <LogOut class="h-4 w-4 mr-2" />
             Sair
@@ -102,7 +110,7 @@ const handleDialogOpenChange = (value: boolean) => {
               </DialogHeader>
               <Textarea v-model="messageText" placeholder="Deixe sua mensagem..." class="min-h-[120px] bg-white border-slate-200" />
               <DialogFooter>
-                <Button disabled>Enviar</Button>
+                <Button @click="submitMessage">Enviar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -151,7 +159,7 @@ const handleDialogOpenChange = (value: boolean) => {
             :createdAt="m.createdAt!"
             :likes="m.likes!"
             :canLike="isAuthenticated"
-            @like="() => {}"
+            @like="submitLike"
           />
         </div>
       </section>
@@ -162,7 +170,7 @@ const handleDialogOpenChange = (value: boolean) => {
         Faça login para postar e curtir mensagens.
       </p>
       <p v-else class="text-xs text-center text-slate-500">
-        Amplify Guestbook - {{ new Date().getFullYear() }}
+        Amplify Guestbook - {{ new Date().getFullYear() }}- {{ auth.user?.signInDetails?.loginId }}
       </p>
     </footer>
   </div>

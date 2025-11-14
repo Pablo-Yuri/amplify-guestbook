@@ -3,4 +3,9 @@ import App from './App.vue'
 
 import '@/assets/main.css'
 
-createApp(App).mount('#app')
+import outputs from '../amplify_outputs.json' 
+import { Amplify } from 'aws-amplify'
+
+Amplify.configure(outputs)
+
+createApp(App).mount('#app') 
